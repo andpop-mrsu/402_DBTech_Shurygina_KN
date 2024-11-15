@@ -1,0 +1,51 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use shuryginaKN\cold_hot\Controller;
+use shuryginaKN\cold_hot\Database;
+use shuryginaKN\cold_hot\View;
+
+$db = new Database();
+$db->createGameTable();
+$db->createMovesTable();
+
+$options = getopt("nlh:r:", ["new", "list", "help", "replay:"]);
+
+if (isset($options['h']) || isset($options['help'])) {
+    View\showHelp();
+    exit;
+}
+
+if (isset($options['l']) || isset($options['list'])) {
+    Controller\showGameHistory();
+    exit;
+}
+
+if (isset($options['r']) || isset($options['replay'])) {
+    $gameId = (int)$options['r'];
+    $game = $db->getGameById($gameId);
+    $moves = $db->getMovesByGameId($gameId);
+    if ($game) {
+        View\showGameReplay($game, $moves);
+    } else {
+        View\showFeedback("Game with ID $gameId not found.");
+    }
+    exit;
+}
+
+View\showActionMenu();
+$choice = View\getUserInput("Enter your choice");
+
+switch ($choice) {
+    case '1':
+        Controller\startGame();
+        break;
+    case '2':
+        Controller\showGameHistory();
+        break;
+    default:
+        View\showFeedback("Invalid choice");
+        break;
+}
